@@ -6,11 +6,12 @@ import {
   Severity,
   DocumentType,
 } from "@typegoose/typegoose";
-import { nanoid } from "nanoid";
+
 import bcrypt from "bcryptjs";
 import config from "config";
 import logger from "../utils/logger";
 import _ from "lodash";
+import { v4 as uuidv4 } from "uuid";
 
 //pre hook middleware
 @pre<User>("save", async function (next) {
@@ -88,7 +89,7 @@ export class User {
   @prop({ required: true, default: false })
   public isAdmin: boolean;
 
-  @prop({ required: true, default: () => _.random(5, 50000) })
+  @prop({ required: true, default: () => uuidv4() })
   verificationCode: string;
 
   @prop()
