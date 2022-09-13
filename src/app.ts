@@ -13,6 +13,6 @@ const app = express();
 app.use(router);
 
 app.listen(port, async () => {
-   logger.info(`App is running on port http://localhost:${port}`);
-   await connectToDatabase();
+  logger.info(`App is running on port http://localhost:${port}`);
+  await connectToDatabase();
 });

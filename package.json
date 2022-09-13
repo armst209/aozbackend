@@ -2,7 +2,7 @@
    "name": "aozbackend",
    "version": "1.0.0",
    "description": "Rest API for Advance of Zeta website",
-   "main": "index.js",
+   "main": "src/app.ts",
    "scripts": {
       "dev": "ts-node-dev --respawn --transpile-only src/app.ts"
    },

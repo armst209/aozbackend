@@ -1,3 +1,20 @@
+import { Request, Response } from "express";
+import { CreateUserInput } from "../schema/user.schema";
+import { createUser } from "../services/user.service";
+
+export const createUserHandler = async (
+  req: Request<{}, {}, CreateUserInput>,
+  res: Response
+) => {
+  const body = req.body;
+
+  try {
+    const user = await createUser(body);
+    //not checking for if the user exists because of the unique constraint on the model
+    return res.send("User successfully created");
+  } catch (error) {}
+};
+
 // const jwt = require("jsonwebtoken");
 
 // const asyncHandler = require("express-async-handler");
