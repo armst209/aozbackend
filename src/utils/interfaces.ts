@@ -1,4 +1,7 @@
-export interface HookNextFunction {
-   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-   (error?: Error): any;
+export interface TestMailSMTP {
+   user: string;
+   pass: string;
+   host: string;
+   port: number;
+   secure: boolean;
 }
