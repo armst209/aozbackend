@@ -1,19 +1,28 @@
 import { Request, Response } from "express";
 import { nanoid } from "nanoid";
 import {
-   CreateUserInput,
-   ForgotPasswordInput,
-   VerifyUserInput,
+  CreateUserInput,
+  ForgotPasswordInput,
+  VerifyUserInput,
 } from "../schema/user.schema";
 import {
-   createUser,
-   findUserByEmail,
-   findUserById,
+  createUser,
+  findUserByEmail,
+  findUserById,
+  getAllUsers,
 } from "../services/user.service";
 import logger from "../utils/logger";
 import { sendEmail } from "../utils/mailer";
 
 //remember body is the 3rd input for the type
+export const getAllUsersHandler = async (req: Request, res: Response) => {
+  const allUsers = await getAllUsers();
+
+  if (!allUsers) {
+    return res.status(404).send("No available users");
+  }
+  res.status(200).json(allUsers);
+};
 
 /**
  * @desc creates a new user and sends verification email to user
@@ -22,29 +31,31 @@ import { sendEmail } from "../utils/mailer";
  * @returns 200 status if user has been successfully created
  */
 export const createUserHandler = async (
-   req: Request<{}, {}, CreateUserInput>,
-   res: Response,
+  req: Request<{}, {}, CreateUserInput>,
+  res: Response
 ) => {
-   const body = req.body;
+  const body = req.body;
 
-   try {
-      const user = await createUser(body);
-      await sendEmail({
-         from: process.env.MY_EMAIL,
-         to: user.email,
-         subject: "Please verify your account",
-         text: `Verification code ${user.verificationCode}. Id:${user.id}`,
-      });
+  try {
+    console.log("hit");
+    const user = await createUser(body);
+    console.log(user);
+    await sendEmail({
+      from: process.env.MY_EMAIL,
+      to: user.email,
+      subject: "Please verify your account",
+      text: `Verification code ${user.verificationCode}. Id:${user.id}`,
+    });
 
-      //not checking for if the user exists because of the unique constraint on the model
-      return res.status(200).send("User successfully created");
-   } catch (error: any) {
-      //code for a unique constraint has been violated
-      if (error.code === 11000) {
-         res.status(409).send("Account already exists"); //conflict
-      }
-      return res.status(500).send(error);
-   }
+    //not checking for if the user exists because of the unique constraint on the model
+    return res.status(200).send("User successfully created");
+  } catch (error: any) {
+    //code for a unique constraint has been violated
+    if (error.code === 11000) {
+      res.status(409).send("Account already exists"); //conflict
+    }
+    return res.status(500).send(error);
+  }
 };
 
 /**
@@ -53,72 +64,74 @@ export const createUserHandler = async (
  * @param res
  * @returns 200 status if user is verified, 404 if user is not found, 400 if user cannot be verified
  */
-export const verifyUserHandler = async (
-   req: Request<VerifyUserInput>,
-   res: Response,
-) => {
-   const id = req.params.id;
-   const verificationCode = req.params.verificationCode;
+// export const verifyUserHandler = async (
+//   req: Request<VerifyUserInput>,
+//   res: Response
+// ) => {
+//   const id = req.params.id;
+//   const verificationCode = req.params.verificationCode;
+//   console.log(id, verificationCode);
 
-   //finding user by id
-   const user = await findUserById(id);
-   if (!user) {
-      res.sendStatus(404).send("User not found. Could not verify user");
-   }
+//   //finding user by id
+//   const user = await findUserById(id);
+//   console.log(user);
+//   if (!user) {
+//     res.sendStatus(404).send("User not found. Could not verify user");
+//   }
 
-   //checking to see if user is already verified
-   if (user?.isVerified) {
-      return res.send("User is already verified");
-   }
+//   //checking to see if user is already verified
+//   if (user?.isVerified) {
+//     return res.send("User is already verified");
+//   }
 
-   //checking if verification code matches
-   if (user?.verificationCode === verificationCode) {
-      user.isVerified = true;
-      //saving in document
-      await user.save();
-      return res.sendStatus(200).send("User successfully verified");
-   }
+//   ///checking if verification code matches
+//   if (user?.verificationCode === verificationCode) {
+//     user.isVerified = true;
+//     //saving in document
+//     await user.save();
+//     return res.status(200).send("User successfully verified");
+//   }
 
-   return res.sendStatus(400).send("Could not verify user");
-};
+//   return res.status(400).json("Could not verify user");
+// };
 
-export const forgotPasswordHandler = async (
-   req: Request<{}, {}, ForgotPasswordInput>,
-   res: Response,
-) => {
-   //so users don't keep spamming this endpoint to see which emails are registered or not
-   const message =
-      "If a user with that email is registered you will receive a password reset email";
-   const { email } = req.body;
+// export const forgotPasswordHandler = async (
+//   req: Request<{}, {}, ForgotPasswordInput>,
+//   res: Response
+// ) => {
+//   //so users don't keep spamming this endpoint to see which emails are registered or not
+//   const message =
+//     "If a user with that email is registered you will receive a password reset email";
+//   const { email } = req.body;
 
-   const user = await findUserByEmail(email);
+//   const user = await findUserByEmail(email);
 
-   if (!user) {
-      logger.debug(`User with email ${email} does not exist`);
-      return res.send(message);
-   }
+//   if (!user) {
+//     logger.debug(`User with email ${email} does not exist`);
+//     return res.send(message);
+//   }
 
-   if (!user.isVerified) {
-      return res.sendStatus(400).send("User is not verified");
-   }
+//   if (!user.isVerified) {
+//     return res.sendStatus(400).send("User is not verified");
+//   }
 
-   //generating new password reset code & saving document
-   const passwordResetCode = nanoid();
-   user.passwordConfirmation = passwordResetCode;
-   await user.save();
+//   //generating new password reset code & saving document
+//   const passwordResetCode = nanoid();
+//   user.passwordConfirmation = passwordResetCode;
+//   await user.save();
 
-   //sending email
-   await sendEmail({
-      to: user.email,
-      from: "armst209dev@gmail.com",
-      subject: "Reset your password",
-      text: `Password reset code: ${passwordResetCode}. Id ${user._id}`,
-   });
+//   //sending email
+//   await sendEmail({
+//     to: user.email,
+//     from: "armst209dev@gmail.com",
+//     subject: "Reset your password",
+//     text: `Password reset code: ${passwordResetCode}. Id ${user._id}`,
+//   });
 
-   logger.debug(`Password reset email sent to ${email}`);
+//   logger.debug(`Password reset email sent to ${email}`);
 
-   return res.sendStatus(200).send(message);
-};
+//   return res.sendStatus(200).send(message);
+// };
 
 // const jwt = require("jsonwebtoken");
 
