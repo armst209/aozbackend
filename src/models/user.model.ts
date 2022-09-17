@@ -16,6 +16,10 @@ import { nanoid } from "nanoid";
 const { name, email, username, password, team, rank, role, isAdmin } =
   userValidationRules;
 
+/**
+ * Password confirmation does not need to be in the model, only for client side validation
+ */
+
 //pre hook middleware
 @pre<User>("save", async function (next) {
   if (!this.isModified("password")) {
@@ -23,10 +27,10 @@ const { name, email, username, password, team, rank, role, isAdmin } =
   } else {
     //Hash & Salt password
     const salt = await bcrypt.genSalt(config.get<number>("saltWorkFactor"));
-    const hash = await bcrypt.hashSync(this.password, salt);
+    const hash = await bcrypt.hash(this.password, salt);
 
     this.password = hash;
-
+    logger.info(hash);
     return next();
   }
 })
@@ -74,13 +78,6 @@ export class User {
     maxLength: password.maxLength,
   })
   public password: string;
-
-  @prop({
-    required: password.required,
-    minLength: password.minLength,
-    maxLength: password.maxLength,
-  })
-  public passwordConfirmation: string;
 
   @prop({
     required: team.required,

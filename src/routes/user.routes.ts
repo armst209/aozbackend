@@ -1,9 +1,9 @@
 import express from "express";
 import {
   createUserHandler,
-  //   forgotPasswordHandler,
+  forgotPasswordHandler,
   getAllUsersHandler,
-  //   verifyUserHandler,
+  verifyUserByEmailHandler,
 } from "../controllers/user.controller";
 import validateResource from "../middleware/validateResource";
 import {
@@ -18,21 +18,21 @@ const router = express.Router();
 router.get("/api/users", getAllUsersHandler);
 
 router.post(
-  "/api/users/register",
+  "/api/users",
   validateClientInput(createUserSchema), //validating info from client against schema - Zod validation
   createUserHandler
 );
 
-// router.post(
-//   "/api/users/verify/:id/:verificationCode",
-//   validateResource(verifyUserSchema),
-//   verifyUserHandler
-// );
+router.post(
+  "/api/users/verify/:id/:verificationCode",
+  validateResource(verifyUserSchema),
+  verifyUserByEmailHandler
+);
 
-// router.post(
-//   "/api/users/forgotpassword",
-//   validateResource(forgotPasswordSchema),
-//   forgotPasswordHandler
-// );
+router.post(
+  "/api/users/forgotpassword",
+  validateResource(forgotPasswordSchema),
+  forgotPasswordHandler
+);
 
 export default router;
