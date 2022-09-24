@@ -1,5 +1,4 @@
 node_modules
-.env
-.env.prod
-NOTES.md
+*.env
+*.md
 
