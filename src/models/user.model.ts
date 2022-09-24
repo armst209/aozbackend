@@ -13,12 +13,24 @@ import config from "config";
 import logger from "../utils/logger";
 import _ from "lodash";
 import { nanoid } from "nanoid";
-const { name, email, username, password, team, rank, role, isAdmin } =
+const { name, email, username, password, team, rank, roles, isAdmin, canEdit } =
   userValidationRules;
 
 /**
  * Password confirmation does not need to be in the model, only for client side validation
  */
+
+//fields to be remove from JWT so they're not visible to user
+export const privateFields = [
+  "password",
+  "__v",
+  "verificationCode",
+  "passwordResetCode",
+  "isVerified",
+  "iat",
+  "createdAt",
+  "updateAt",
+];
 
 //pre hook middleware
 @pre<User>("save", async function (next) {
@@ -75,7 +87,6 @@ export class User {
   @prop({
     required: password.required,
     minLength: password.minLength,
-    maxLength: password.maxLength,
   })
   public password: string;
 
@@ -96,15 +107,16 @@ export class User {
   public rank: string;
 
   @prop({
-    required: role.required,
-    minLength: role.minLength,
-    maxLength: role.maxLength,
-    default: role.default,
+    required: roles.required,
+    default: roles.default,
   })
-  public role: string;
+  public roles: string[];
 
   @prop({ required: isAdmin.required, default: isAdmin.default })
-  public isAdmin: boolean;
+  isAdmin: boolean;
+
+  @prop({ require: canEdit.required, default: canEdit.default })
+  canEdit: boolean;
 
   @prop({ required: true, default: () => nanoid() })
   verificationCode: string;
@@ -130,6 +142,19 @@ export class User {
     } catch (error) {
       logger.error(error, "Could not validate password");
       return false;
+    }
+  }
+
+  async validateRoles(this: DocumentType<User>) {
+    if (this.roles.includes("admin") && this.roles.includes("editor")) {
+      this.isAdmin = true;
+      this.canEdit = false;
+    } else if (this.roles.includes("admin")) {
+      this.isAdmin = true;
+      this.canEdit = false;
+    } else {
+      this.isAdmin = false;
+      this.canEdit = false;
     }
   }
 }

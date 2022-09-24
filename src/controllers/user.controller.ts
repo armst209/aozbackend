@@ -1,9 +1,14 @@
 import { Request, Response } from "express";
 import { nanoid } from "nanoid";
 import { User } from "../models/user.model";
+import sendEmail from "./mailer.controller";
+import setRoles from "../utils/roleSetter";
+
 import {
   CreateUserInput,
   ForgotPasswordInput,
+  ResetPasswordInput,
+  UpdateUserRoleSchema,
   VerifyUserInput,
 } from "../schema/user.schema";
 import {
@@ -13,6 +18,7 @@ import {
   getAllUsers,
 } from "../services/user.service";
 import logger from "../utils/logger";
+import { userRoles } from "../validation/user.validation";
 
 import { runMCPingTest, subscribeUserToMClist } from "./mailer.controller";
 
@@ -39,20 +45,83 @@ export const createUserHandler = async (
   const body = req.body;
 
   try {
-    // const user = await createUser(body);
-    // console.log(body);
+    const user = await createUser(body);
 
     //subscribe to mailing list
-    subscribeUserToMClist(res, body);
+    // subscribeUserToMClist(res, body);
+
+    //nodemailer
+    await sendEmail({
+      from: "test@example.com",
+      to: user.email,
+      subject: "Please verify your account",
+      text: `Verification Code: ${user.verificationCode}. Id: ${user.id}`,
+    });
+
     //not checking for if the user exists because of the unique constraint on the model
-    res.status(200).send("User successfully created");
+    return res.status(200).send("User successfully created");
   } catch (error: any) {
     //code for a unique constraint has been violated
     if (error.code === 11000) {
-      res.status(409).send("User/Account already exists"); //conflict
+      return res.status(409).send("Account already exists"); //conflict
     }
     logger.error(error);
     return res.status(500).send(error);
+  }
+};
+
+export const updateUserRoleHandler = async (
+  req: Request<{}, {}, UpdateUserRoleSchema>,
+  res: Response
+) => {
+  //find user
+  const { email, role } = req.body;
+  let user = await findUserByEmail(email);
+
+  //user not found
+  if (!user) {
+    return res.status(404).send("User not found");
+  }
+
+  //user is already has role
+  if (user.roles.includes(role)) {
+    return res.status(400).send(`User is already a ${role}`);
+  }
+
+  //role is not found
+  if (!userRoles.includes(role)) {
+    return res.status(404).send("Role not found");
+  }
+
+  //update user roles
+  try {
+    switch (role) {
+      case "admin":
+        const oldUserRoles = user.roles.filter((role) => role !== "user");
+        user.roles = [...oldUserRoles, role];
+        user.isAdmin = true;
+        await user?.save();
+        break;
+      case "user":
+        const oldAdminRoles = user.roles
+          .filter((role) => role !== "admin")
+          .filter((role) => role !== "editor");
+        user.roles = [...oldAdminRoles, role];
+        user.isAdmin = false;
+        await user?.save();
+        break;
+      case "editor":
+        const oldUserAdminRoles = user.roles.filter((role) => role !== "user");
+        user.roles = [...oldUserAdminRoles, role];
+        await user?.save();
+        break;
+      default:
+        return res.status(400).send("User's role could not be updated");
+    }
+    return res.status(200).send("User's role has been successfully updated");
+  } catch (error) {
+    logger.error(error);
+    res.status(400).send("User's role could not be updated");
   }
 };
 
@@ -71,7 +140,7 @@ export const verifyUserByEmailHandler = async (
 
   //finding user by id
   const user = await findUserById(id);
-  console.log(user);
+
   if (!user) {
     res.status(404).send("User not found. Could not verify user");
   }
@@ -118,8 +187,39 @@ export const forgotPasswordHandler = async (
   await user.save();
 
   //send email
-
+  await sendEmail({
+    from: "commandTTT@gmail.com",
+    to: user.email,
+    text: `Password reset code: ${user.passwordResetCode}. Id: ${user.id}`,
+  });
   logger.debug(`Password reset email sent to ${email}`);
 
   return res.sendStatus(200).send(message);
+};
+
+export const resetPasswordHandler = async (
+  req: Request<ResetPasswordInput["params"], {}, ResetPasswordInput["body"]>,
+  res: Response
+) => {
+  const { id, passwordResetCode } = req.params;
+  const { password } = req.body;
+
+  const user = await findUserById(id);
+  if (
+    !user ||
+    !user.passwordResetCode ||
+    user.passwordResetCode !== passwordResetCode
+  ) {
+    return res.status(400).send("Could not reset user password");
+  }
+
+  user.passwordResetCode = null;
+  user.password = password;
+  await user.save();
+
+  return res.send("Successfully update password");
+};
+
+export const getCurrentUserHandler = async (req: Request, res: Response) => {
+  return res.status(200).send(res.locals.user);
 };

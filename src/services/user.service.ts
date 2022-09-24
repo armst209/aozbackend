@@ -1,6 +1,4 @@
-//services talk to database - operations to perform on database
 import { UserModel, User } from "../models/user.model";
-//Partial - selecting any properties from an interface
 
 export function getAllUsers() {
   return UserModel.find();
@@ -15,4 +13,8 @@ export function findUserById(id: string) {
 }
 export function findUserByEmail(email: string) {
   return UserModel.findOne({ email });
+}
+
+export function findUserByUserName(username: string) {
+  return UserModel.findOne({ username });
 }

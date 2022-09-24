@@ -3,23 +3,38 @@ import {
   createUserHandler,
   forgotPasswordHandler,
   getAllUsersHandler,
+  resetPasswordHandler,
   verifyUserByEmailHandler,
+  getCurrentUserHandler,
+  updateUserRoleHandler,
 } from "../controllers/user.controller";
+import authorizeUser from "../middleware/authorizeUser";
 import validateResource from "../middleware/validateResource";
 import {
   createUserSchema,
   forgotPasswordSchema,
+  resetPasswordSchema,
+  updateUserRoleSchema,
   verifyUserSchema,
 } from "../schema/user.schema";
-import validateClientInput from "../validation/validateClient";
 
 const router = express.Router();
 
-router.get("/api/users", getAllUsersHandler);
+//private routes
+router.get("/api/admin/users", getAllUsersHandler);
 
+router.get("/api/admin/users/currentUser", getCurrentUserHandler);
+
+router.put(
+  "/api/admin/users/",
+  validateResource(updateUserRoleSchema),
+  updateUserRoleHandler
+);
+
+//public routes
 router.post(
   "/api/users",
-  validateClientInput(createUserSchema), //validating info from client against schema - Zod validation
+  validateResource(createUserSchema), //validating info from client against schema - Zod validation
   createUserHandler
 );
 
@@ -33,6 +48,12 @@ router.post(
   "/api/users/forgotpassword",
   validateResource(forgotPasswordSchema),
   forgotPasswordHandler
+);
+
+router.post(
+  "/api/users/resetpassword/:id/:passwordResetCode",
+  validateResource(resetPasswordSchema),
+  resetPasswordHandler
 );
 
 export default router;

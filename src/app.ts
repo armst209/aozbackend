@@ -1,23 +1,29 @@
 //dotenv to access environment variables
 require("dotenv").config();
 import express from "express";
+import cors from "cors";
 import config from "config";
 import logger from "./utils/logger";
 import router from "./routes/index";
-
 import connectToDatabase from "./utils/connectToDB";
+import authorizeUser from "./middleware/authorizeUser";
 
 const port = config.get<number>("port");
+
 const app = express();
 
-//Middleware
+//Middleware - THE ORDER OF MIDDLEWARE MATTERS
+app.use(cors());
 
-//replaces body parser - must be above router - THE ORDER OR MIDDLEWARE MATTERS
-app.use(express.json());
+app.use(express.json()); //replaces body parser - must be above router
+
+app.use(authorizeUser); //for user routes that require jwt but don't require admin status
 
 app.use(router);
 
 app.listen(port, async () => {
-   logger.info(`App is running on port http://localhost:${port}`);
-   await connectToDatabase();
+  logger.info(
+    `CORS-enabled web server running on port http://localhost:${port}`
+  );
+  await connectToDatabase();
 });

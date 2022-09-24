@@ -2,10 +2,11 @@ import { Response, Request } from "express";
 import logger from "../utils/logger";
 import MailChimp from "@mailchimp/mailchimp_marketing";
 import MailChimpTransactional from "@mailchimp/mailchimp_transactional";
-
+import nodemailer, { SendMailOptions } from "nodemailer";
+import config from "config";
 import { CreateUserInput } from "../schema/user.schema";
 
-//ping check
+//MAILCHIMP
 const runMCCredentials = async () => {
   try {
     const mcTx = MailChimpTransactional(String(process.env.MC_TRANS_API_KEY));
@@ -84,31 +85,48 @@ export const subscribeUserToMClist = async (
           to: [{ email, name: username }],
         },
       });
-      console.log(response);
     };
 
     sendRegistrationEmail();
-
-    // res.send(response);
-    // const response = await MailChimp.lists.addListMember(
-    //   "e73d7ac52c",
-    //   {
-    //     email_address: email,
-    //     status: "subscribed",
-    //     merge_fields: {
-    //       FNAME: name,
-    //       USERNAME: username,
-    //     },
-    //   },
-    //   {
-    //     skipMergeValidation: false,
-    //   }
-    // );
-
-    // logger.info(response);
   } catch (error: any) {
-    console.log("hit");
     logger.error(error);
     res.status(error).send(error);
   }
 };
+
+//NODEMAILER
+
+// const createTestCredentials = async () => {
+//   const credentials = await nodemailer.createTestAccount();
+//   console.log({ credentials });
+// };
+
+// createTestCredentials();
+
+const smtp = config.get<{
+  user: string;
+  pass: string;
+  host: string;
+  port: number;
+  secureConnection: boolean;
+}>("smtp");
+
+const transporter = nodemailer.createTransport({
+  ...smtp,
+  auth: { user: smtp.user, pass: smtp.pass },
+  tls: {
+    ciphers: "SSLv3",
+  },
+});
+const sendEmail = async (payload: SendMailOptions) => {
+  transporter.sendMail(payload, (error, info) => {
+    if (error) {
+      logger.error(error, "Error sending email");
+      return;
+    }
+
+    logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
+  });
+};
+
+export default sendEmail;
