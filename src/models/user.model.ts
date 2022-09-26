@@ -13,6 +13,7 @@ import config from "config";
 import logger from "../utils/logger";
 import _ from "lodash";
 import { nanoid } from "nanoid";
+import { ObjectId } from "mongoose";
 const { name, email, username, password, team, rank, roles, isAdmin, canEdit } =
   userValidationRules;
 
@@ -27,9 +28,6 @@ export const privateFields = [
   "verificationCode",
   "passwordResetCode",
   "isVerified",
-  "iat",
-  "createdAt",
-  "updateAt",
 ];
 
 //pre hook middleware
@@ -60,6 +58,7 @@ export const privateFields = [
 
 //User schema definition
 export class User {
+  [x: string]: any;
   @prop({
     minLength: name.minLength,
     maxLength: name.maxLength,

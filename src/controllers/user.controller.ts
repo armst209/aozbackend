@@ -2,12 +2,13 @@ import { Request, Response } from "express";
 import { nanoid } from "nanoid";
 import { User } from "../models/user.model";
 import sendEmail from "./mailer.controller";
-import setRoles from "../utils/roleSetter";
+import language from "../utils/language";
 
 import {
   CreateUserInput,
   ForgotPasswordInput,
   ResetPasswordInput,
+  ResetPasswordParams,
   UpdateUserRoleSchema,
   VerifyUserInput,
 } from "../schema/user.schema";
@@ -22,14 +23,16 @@ import { userRoles } from "../validation/user.validation";
 
 import { runMCPingTest, subscribeUserToMClist } from "./mailer.controller";
 
-//remember body is the 3rd input for the type
 export const getAllUsersHandler = async (req: Request, res: Response) => {
   const allUsers = await getAllUsers();
 
   if (!allUsers) {
-    return res.status(404).send("No available users");
+    return res.status(404).send("Cannot find users");
   }
-  res.status(200).json(allUsers);
+  if (allUsers.length === 0) {
+    return res.status(200).send("No available users");
+  }
+  return res.status(200).json(allUsers);
 };
 
 /**
@@ -165,16 +168,13 @@ export const forgotPasswordHandler = async (
   req: Request<{}, {}, ForgotPasswordInput>,
   res: Response
 ) => {
-  //so users don't keep spamming this endpoint to see which emails are registered or not
-  const message =
-    "If a user with that email is registered you will receive a password reset email";
   const { email } = req.body;
 
   const user = await findUserByEmail(email);
 
   if (!user) {
     logger.debug(`User with email ${email} does not exist`);
-    return res.send(message);
+    return res.send(language.forgotPasswordMessage);
   }
 
   if (!user.isVerified) {
@@ -194,16 +194,17 @@ export const forgotPasswordHandler = async (
   });
   logger.debug(`Password reset email sent to ${email}`);
 
-  return res.sendStatus(200).send(message);
+  return res.status(200).send(language.forgotPasswordMessage);
 };
 
 export const resetPasswordHandler = async (
-  req: Request<ResetPasswordInput["params"], {}, ResetPasswordInput["body"]>,
+  req: Request<ResetPasswordParams, {}, ResetPasswordInput>,
   res: Response
 ) => {
   const { id, passwordResetCode } = req.params;
-  const { password } = req.body;
 
+  const { password } = req.body;
+  console.log(password, id, passwordResetCode);
   const user = await findUserById(id);
   if (
     !user ||

@@ -1,4 +1,4 @@
-import { UserModel, User } from "../models/user.model";
+import { User, UserModel } from "../models/user.model";
 
 export function getAllUsers() {
   return UserModel.find();

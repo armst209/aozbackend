@@ -7,3 +7,5 @@
 //public routes = createUser, verifyUser, forgotPassword, resetPassword
 
 //Partial - selecting any properties from an interface
+
+//remember body is the 3rd input for the type

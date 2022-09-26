@@ -22,7 +22,7 @@ export const createUserSchema = object({
     })
       .min(email.minLength, "Email is too short - min length is 5 characters")
       .max(email.maxLength, "Email is too long - max length is 50 characters")
-      .email("Please enter a valid email address"),
+      .email(language.validEmailMessage),
     username: string({
       required_error: "Username is required",
       invalid_type_error: "Username must be a string",
@@ -192,4 +192,5 @@ export type AuthorizeUserSchema = TypeOf<typeof authorizeUserSchema>["body"];
 export type UpdateUserRoleSchema = TypeOf<typeof updateUserRoleSchema>["body"];
 export type VerifyUserInput = TypeOf<typeof verifyUserSchema>["params"];
 export type ForgotPasswordInput = TypeOf<typeof forgotPasswordSchema>["body"];
-export type ResetPasswordInput = TypeOf<typeof resetPasswordSchema>;
+export type ResetPasswordParams = TypeOf<typeof resetPasswordSchema>["params"];
+export type ResetPasswordInput = TypeOf<typeof resetPasswordSchema>["body"];

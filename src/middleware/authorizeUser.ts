@@ -24,6 +24,7 @@ const authorizeUser = async (
     //admin
     case "/api/admin/users":
     case "/api/admin/users/currentUser":
+    case "/api/admin/sessions":
       if (!accessToken) {
         return res.status(401).send("User not authorized");
       }
@@ -33,6 +34,7 @@ const authorizeUser = async (
         return res.status(401).send("User not authorized");
       }
       return next();
+
     //all other routes
     default:
       return next();

@@ -8,7 +8,6 @@ import {
   getCurrentUserHandler,
   updateUserRoleHandler,
 } from "../controllers/user.controller";
-import authorizeUser from "../middleware/authorizeUser";
 import validateResource from "../middleware/validateResource";
 import {
   createUserSchema,

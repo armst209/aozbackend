@@ -124,7 +124,6 @@ const sendEmail = async (payload: SendMailOptions) => {
       logger.error(error, "Error sending email");
       return;
     }
-
     logger.info(`Preview URL: ${nodemailer.getTestMessageUrl(info)}`);
   });
 };
