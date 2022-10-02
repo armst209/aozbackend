@@ -13,11 +13,9 @@ export function getAllSessions() {
 export function getSessionsById(id: string) {
   return SessionModel.find().where(id);
 }
-export function getMostRecentSessionById(id: string) {
-  return SessionModel.find()
-    .where(id)
-    .sort({ createdAt: -1 })
-    .then((res) => console.log(res));
+export async function getMostRecentSessionIdByUserId(id: string) {
+  const sessions = await SessionModel.find().where(id);
+  return sessions.at(-1)!._id;
 }
 
 export function getSessionId(session: Session) {
@@ -38,6 +36,10 @@ export const createSession = ({ userId }: { userId: string }) => {
 export const deleteSession = ({ userId }: { userId: string }) => {
   return SessionModel.findByIdAndDelete({ user: userId });
 };
+
+export function deleteAllUserSessions(id: string) {
+  return SessionModel.deleteMany().where(id);
+}
 export const signRefreshToken = async ({ userId }: { userId: string }) => {
   const jwtExpireTime = config.get<string>("jwtRefreshTokenExpireTime");
   const session = await createSession({ userId });

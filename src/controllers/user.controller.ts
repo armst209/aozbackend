@@ -35,6 +35,8 @@ export const getAllUsersHandler = async (req: Request, res: Response) => {
   return res.status(200).json(allUsers);
 };
 
+export const getUserById = async () => {};
+export const getUserByEmail = async () => {};
 /**
  * @desc creates a new user and sends verification email to user
  * @param req

@@ -8,7 +8,7 @@ import {
 } from "../controllers/sessions.controller";
 import authorizeUser from "../middleware/authorizeUser";
 import validateResource from "../middleware/validateResource";
-import { createSessionSchema } from "../schema/auth.schema";
+import { createSessionSchema } from "../schema/sessions.schema";
 
 const router = express.Router();
 

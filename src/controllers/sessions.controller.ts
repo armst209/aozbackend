@@ -2,13 +2,13 @@ import { Request, Response } from "express";
 import {
   CreateSessionInput,
   GetByUserEmailSessionInput,
-} from "../schema/auth.schema";
+} from "../schema/sessions.schema";
 import {
   signAccessToken,
   signRefreshToken,
   getAllSessions,
   getSessionsById,
-  getMostRecentSessionById,
+  getMostRecentSessionIdByUserId,
   getSessionId,
 } from "../services/sessions.service";
 import config from "config";
@@ -80,35 +80,14 @@ export const endSessionHandler = async (req: Request, res: Response) => {
   const decodedSession = verifyJWT(tttATkn, "accessTokenPublicKey");
   const { payload } = decodedSession;
 
-  const session = getMostRecentSessionById(payload._id);
-  console.log(session);
+  const sessionId = await getMostRecentSessionIdByUserId(payload?._id);
+  console.log(sessionId);
 
-  // const usersSessions: Array<Session> | null = await getSessionsById(
-  //   payload?._id
-  // );
+  // getting current date time in EST & converting to string
+  const currentDateTime = getCurrentDateTimeInEST();
 
-  // if (!usersSessions) {
-  //   return res.status(404).send("Cannot find sessions");
-  // }
-  // if (usersSessions.length === 0) {
-  //   return res.status(200).send("User does not have any sessions ");
-  // }
-
-  // // find most recent session
-  // const mostRecentSession = usersSessions.at(-1);
-
-  // //
-  // const session = console.log(mostRecentSession!._id);
-
-  //@ts ignore
-  // const sessionId = mostRecentSession!.id;
-
-  // console.log(sessionId);
-  // // getting current date time in EST & converting to string
-  // const currentDateTime = getCurrentDateTimeInEST();
-
-  // //updating session end time
-  // await updateSessionById(sessionId, currentDateTime);
+  //updating session end time
+  await updateSessionById(sessionId, currentDateTime);
 
   res.cookie("tttATkn", "", {
     maxAge: 0,
@@ -125,8 +104,8 @@ export const endSessionHandler = async (req: Request, res: Response) => {
 
 export const getCurrentSessionHandler = async (req: Request, res: Response) => {
   //@ts-ignore
-  const user: Session = req.tttATkn;
-  return res.send(user);
+  const user: Session | string = req.tttATkn;
+  return res.status(200).send(user);
 };
 export const getAllSessionsHandler = async (req: Request, res: Response) => {
   const allSessions = await getAllSessions();
@@ -162,3 +141,8 @@ export const getSessionsByUserEmail = async (
 
   return res.status(200).send(usersSessions);
 };
+
+export const deleteAllSessionsHandler = async (
+  req: Request,
+  res: Response
+) => {};

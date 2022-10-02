@@ -22,6 +22,12 @@ export const getSessionsByUserEmailSchema = object({
   }),
 });
 
+export const getCurrentSessionSchema = object({
+  request: object({
+    tttATkn: string({ required_error: "Token is required" }),
+  }),
+});
+
 export type GetByUserEmailSessionInput = TypeOf<
   typeof getSessionsByUserEmailSchema
 >["body"];
