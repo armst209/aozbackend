@@ -204,7 +204,7 @@ export const resetPasswordHandler = async (
   const { id, passwordResetCode } = req.params;
 
   const { password } = req.body;
-  console.log(password, id, passwordResetCode);
+
   const user = await findUserById(id);
   if (
     !user ||

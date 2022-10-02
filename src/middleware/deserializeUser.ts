@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import { JWTVerifyReturn } from "../utils/interfaces";
 import { verifyJWT } from "../utils/jwt";
 
 const deserializeUser = async (
@@ -6,22 +7,21 @@ const deserializeUser = async (
   res: Response,
   next: NextFunction
 ) => {
-  const accessToken = (req.headers.authorization || "").replace(
-    /^Bearer\s/,
-    ""
-  );
+  const { tttATkn: accessToken } = req.cookies;
 
   if (!accessToken) {
     return next();
   }
 
-  if (!accessToken) {
-    return res.status(401).send("User not authorized");
-  }
+  const { payload }: JWTVerifyReturn = verifyJWT(
+    accessToken,
+    "accessTokenPublicKey"
+  );
 
-  const decoded = verifyJWT(accessToken, "accessTokenPublicKey");
-  if (decoded) {
-    res.locals.user = decoded;
+  if (payload) {
+    // @ts-ignore
+    req.user = payload;
+    return next();
   }
   return next();
 };

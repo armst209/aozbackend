@@ -22,7 +22,7 @@ export default {
   },
   password: {
     required: true,
-    minLength: 6,
+    minLength: 8,
     maxLength: 30,
   },
   team: {

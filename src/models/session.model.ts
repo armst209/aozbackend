@@ -1,8 +1,19 @@
-import { getModelForClass, prop, Ref } from "@typegoose/typegoose";
+import {
+  getModelForClass,
+  prop,
+  Ref,
+  modelOptions,
+  Severity,
+} from "@typegoose/typegoose";
 import { Date } from "mongoose";
 
 import { User } from "./user.model";
 
+@modelOptions({
+  options: {
+    allowMixed: Severity.ALLOW,
+  },
+})
 export class Session {
   @prop({ ref: () => User })
   user: Ref<User>;

@@ -7,7 +7,7 @@ import language from "../utils/language";
 
 const { name, email, username, password, rank, roles, team, isAdmin } =
   userValidationRules;
-const { passwordMinLength } = language;
+const { passwordMinLength, passwordMaxLength } = language;
 //user schema
 export const createUserSchema = object({
   body: object({
@@ -40,10 +40,7 @@ export const createUserSchema = object({
       invalid_type_error: "Password must be a string",
     })
       .min(password.minLength, passwordMinLength)
-      .max(
-        password.maxLength,
-        "Password is too long - max length is 30 characters"
-      ),
+      .max(password.maxLength, passwordMaxLength),
     passwordConfirmation: string({
       required_error: "Password confirmation is required",
       invalid_type_error: "Password must be a string",

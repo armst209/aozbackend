@@ -7,18 +7,26 @@ import logger from "./utils/logger";
 import router from "./routes/index";
 import connectToDatabase from "./utils/connectToDB";
 import authorizeUser from "./middleware/authorizeUser";
+import cookieParser from "cookie-parser";
+import deserializeUser from "./middleware/deserializeUser";
 
 const port = config.get<number>("port");
 
 const app = express();
 
 //Middleware - THE ORDER OF MIDDLEWARE MATTERS
-app.use(cors());
 
+app.use(cookieParser()); //for setting cookies
 app.use(express.json()); //replaces body parser - must be above router
 
-app.use(authorizeUser); //for user routes that require jwt but don't require admin status
+// app.use(deserializeUser); //for user routes that require jwt but don't require admin status
 
+app.use(
+  cors({
+    credentials: true,
+    origin: "http://localhost:3000",
+  })
+);
 app.use(router);
 
 app.listen(port, async () => {

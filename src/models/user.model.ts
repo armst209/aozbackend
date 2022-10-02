@@ -13,7 +13,6 @@ import config from "config";
 import logger from "../utils/logger";
 import _ from "lodash";
 import { nanoid } from "nanoid";
-import { ObjectId } from "mongoose";
 const { name, email, username, password, team, rank, roles, isAdmin, canEdit } =
   userValidationRules;
 

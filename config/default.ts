@@ -2,7 +2,8 @@ export default {
   port: process.env.PORT || 5000,
   dbUri: process.env.MONGO_URI,
   saltWorkFactor: Number(process.env.SALT_ROUNDS), //number of rounds to salt password
-  jwtTokenExpireTime: process.env.JWT_EXPIRE,
+  jwtRefreshTokenExpireTime: process.env.JWT_REFRESH_EXPIRE,
+  jwtAccessTokenExpireTime: process.env.JWT_ACCESS_EXPIRE,
   accessTokenPrivateKey: process.env.ACCESS_TOKEN_PRIVATE_KEY,
   refreshTokenPrivateKey: process.env.REFRESH_TOKEN_PRIVATE_KEY,
   accessTokenPublicKey: process.env.ACCESS_TOKEN_PUBLIC_KEY,

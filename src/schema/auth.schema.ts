@@ -22,14 +22,7 @@ export const getSessionsByUserEmailSchema = object({
   }),
 });
 
-export const endSessionSchema = object({
-  body: object({
-    token: string({ required_error: "Token is required" }),
-  }),
-});
-
 export type GetByUserEmailSessionInput = TypeOf<
   typeof getSessionsByUserEmailSchema
 >["body"];
 export type CreateSessionInput = TypeOf<typeof createSessionSchema>["body"];
-export type EndSessionInput = TypeOf<typeof endSessionSchema>["body"];
