@@ -10,12 +10,16 @@ export function getAllSessions() {
   return SessionModel.find();
 }
 
-export function getSessionsById(id: string) {
-  return SessionModel.find().where(id);
+export function getAllUserSessionsById({ userId }: { userId: string }) {
+  return SessionModel.find({ user: userId });
 }
 export async function getMostRecentSessionIdByUserId(id: string) {
   const sessions = await SessionModel.find().where(id);
   return sessions.at(-1)!._id;
+}
+export async function getMostRecentSession(id: string) {
+  const sessions = await SessionModel.find().where(id);
+  return sessions.at(-1);
 }
 
 export function getSessionId(session: Session) {

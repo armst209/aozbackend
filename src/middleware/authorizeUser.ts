@@ -1,8 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyJWT } from "../utils/jwt";
-import logger from "../utils/logger";
-import decodeUser from "../utils/decodeUser";
 import { JWTVerifyReturn } from "../utils/interfaces";
+import { publicRoutes } from "../utils/requestRoutes";
 
 const authorizeUser = async (
   req: Request,
@@ -11,8 +10,12 @@ const authorizeUser = async (
 ) => {
   const { tttATkn: accessToken } = req.cookies;
 
+  if (publicRoutes.includes(req.path)) {
+    return next();
+  }
+
   if (!accessToken) {
-    return res.status(401).send("User not authorized.");
+    return res.status(401).json({ message: "User not authorized." });
   }
 
   const { payload }: JWTVerifyReturn = verifyJWT(
@@ -22,7 +25,7 @@ const authorizeUser = async (
   const { roles } = payload;
 
   if (!roles.includes("admin") || !roles.includes("editor")) {
-    return res.status(401).send("User not authorized.");
+    return res.status(401).json({ message: "User not authorized." });
   }
 
   return next();

@@ -7,15 +7,17 @@ import {
 
 const router = express.Router();
 
+//private routes
+
 //ping health test
-router.get("/mail/healthcheck", (_, res: Response) =>
+router.get("/mail/admin/healthcheck", (_, res: Response) =>
   runMailChimpHealthCheck(res)
 );
-router.get("/api/mail/getAllLists", (_, res: Response) =>
+router.get("/api/admin/mail/getAllLists", (_, res: Response) =>
   getAllMailChimpLists(res)
 );
 
-router.get("/api/mail/getMyList", (_, res: Response) =>
+router.get("/api/admin/mail/getMyList", (_, res: Response) =>
   getMyMailChimpList(res)
 );
 

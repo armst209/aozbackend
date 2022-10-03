@@ -1,4 +1,5 @@
 export default {
+  environment: process.env.NODE_ENV,
   port: process.env.PORT || 5000,
   dbUri: process.env.MONGO_URI,
   saltWorkFactor: Number(process.env.SALT_ROUNDS), //number of rounds to salt password

@@ -4,9 +4,9 @@ import {
   endSessionHandler,
   getAllSessionsHandler,
   getCurrentSessionHandler,
-  getSessionsByUserEmail,
+  getSessionsByUserEmailHandler,
 } from "../controllers/sessions.controller";
-import authorizeUser from "../middleware/authorizeUser";
+
 import validateResource from "../middleware/validateResource";
 import { createSessionSchema } from "../schema/sessions.schema";
 
@@ -25,8 +25,8 @@ router.post(
 router.delete("/api/session", endSessionHandler);
 
 //admin routes
-router.get("/api/admin/session", authorizeUser, getCurrentSessionHandler);
+router.get("/api/admin/session", getCurrentSessionHandler);
 router.get("/api/admin/sessions", getAllSessionsHandler);
-router.get("/api/admin/sessions", authorizeUser, getSessionsByUserEmail);
+router.get("/api/admin/sessions/:email", getSessionsByUserEmailHandler);
 
 export default router;

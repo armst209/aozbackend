@@ -7,136 +7,175 @@ import {
   signAccessToken,
   signRefreshToken,
   getAllSessions,
-  getSessionsById,
+  getAllUserSessionsById,
   getMostRecentSessionIdByUserId,
-  getSessionId,
+  getMostRecentSession,
 } from "../services/sessions.service";
 import config from "config";
 import { findUserByEmail } from "../services/user.service";
 import { verifyJWT } from "../utils/jwt";
 import language from "../utils/language";
-import { User } from "../models/user.model";
-import dayjs from "dayjs";
+
 import { updateSessionById } from "../services/sessions.service";
 import getCurrentDateTimeInEST from "../utils/getCurrentDateEST";
-import { Session } from "../models/session.model";
 
+import logger from "../utils/logger";
+
+/**
+ * @desc logs user in - creates a session, finds user by email, verifies user then assigns an access and refresh token
+ * @param req
+ * @param res
+ * @returns
+ */
 export const createSessionHandler = async (
   req: Request<{}, {}, CreateSessionInput>,
   res: Response
 ) => {
+  //generic message for client
   const message = language.vagueLoginMessage;
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await findUserByEmail(email);
+    const user = await findUserByEmail(email);
 
-  if (!user) {
-    return res.status(400).send(message);
+    if (!user) {
+      logger.error("User is not found");
+      return res.status(400).json({ message });
+    }
+
+    //verifying user - if user has not followed link in email
+    if (!user.isVerified) {
+      logger.error("User has not been verified");
+      return res.status(400).json({ message: "User not verified" });
+    }
+
+    const isValid = await user.validatePassword(password);
+
+    if (!isValid) {
+      logger.error("User is not valid");
+      return res.status(400).json({ message });
+    }
+
+    //signing access token
+    const jwtAccessTokenExpireTime = config.get<string>(
+      "jwtAccessTokenExpireTime"
+    );
+    const accessToken = signAccessToken(user, jwtAccessTokenExpireTime);
+    res.cookie("tttATkn", accessToken, {
+      httpOnly: true,
+      maxAge: 300000, //5 minutes
+    });
+
+    //signing refresh token
+    const refreshToken = await signRefreshToken({ userId: user._id });
+
+    res.cookie("tttRTkn", refreshToken, {
+      maxAge: 3.154e10, //1 year
+      httpOnly: true,
+      secure: true,
+      // expires: dayjs().add(10, "days").toDate(),
+    });
+
+    //send the tokens
+    res.status(200).json({
+      message: "User has successfully logged in.",
+    });
+  } catch (error) {
+    res.status(400).json({ message });
   }
-
-  if (!user.isVerified) {
-    return res.status(400).send("Please verify your email");
-  }
-
-  const isValid = await user.validatePassword(password);
-
-  if (!isValid) {
-    return res.status(400).send(message);
-  }
-
-  //sign an access token
-
-  const jwtAccessTokenExpireTime = config.get<string>(
-    "jwtAccessTokenExpireTime"
-  );
-  const accessToken = signAccessToken(user, jwtAccessTokenExpireTime);
-  res.cookie("tttATkn", accessToken, {
-    httpOnly: true,
-    maxAge: 300000, //5 minutes
-  });
-
-  //sign a refresh token
-  const refreshToken = await signRefreshToken({ userId: user._id });
-
-  res.cookie("tttRTkn", refreshToken, {
-    maxAge: 3.154e10, //1 year
-    httpOnly: true,
-
-    // secure: true,
-    // expires: dayjs().add(10, "days").toDate(),
-  });
-
-  //send the tokens
-  // return res.send({ accessToken, refreshToken });
-  res.status(200).send({
-    user: verifyJWT(accessToken, "accessTokenPublicKey")?.payload,
-    token: accessToken,
-  });
 };
 
+/**
+ * @desc logs user out - uses cookie tokens from request to update session with current date time and to set isSessionValid to false. Clears cookies in client cookie storage.
+ * @param req
+ * @param res
+ * @returns
+ */
 export const endSessionHandler = async (req: Request, res: Response) => {
-  //@ts-ignore
-  const { tttATkn, tttRTkn } = req.cookies;
-  const decodedSession = verifyJWT(tttATkn, "accessTokenPublicKey");
-  const { payload } = decodedSession;
+  try {
+    //getting token from request cookies
+    const { tttATkn } = req.cookies;
 
-  const sessionId = await getMostRecentSessionIdByUserId(payload?._id);
-  console.log(sessionId);
+    //verifying token
+    const decodedSession = verifyJWT(tttATkn, "accessTokenPublicKey");
 
-  // getting current date time in EST & converting to string
-  const currentDateTime = getCurrentDateTimeInEST();
+    //returning session
+    const { payload } = decodedSession;
 
-  //updating session end time
-  await updateSessionById(sessionId, currentDateTime);
+    //getting most recent session id
+    const sessionId = await getMostRecentSessionIdByUserId(payload?._id);
 
-  res.cookie("tttATkn", "", {
-    maxAge: 0,
-    httpOnly: true,
-  });
+    // getting current date time in EST & converting to string
+    const currentDateTime = getCurrentDateTimeInEST();
 
-  res.cookie("tttRTkn", "", {
-    maxAge: 0,
-    httpOnly: true,
-  });
+    //updating session end time
+    await updateSessionById(sessionId, currentDateTime);
 
-  return res.status(200).send("User has been successfully logged out.");
+    //setting cookies to empty string
+    res.cookie("tttATkn", "", {
+      maxAge: 0,
+      httpOnly: true,
+    });
+
+    res.cookie("tttRTkn", "", {
+      maxAge: 0,
+      httpOnly: true,
+    });
+    return res
+      .status(200)
+      .json({ message: "User has been successfully logged out." });
+  } catch (error) {
+    return res
+      .status(400)
+      .json({ message: "Could not log user out, unknown error" });
+  }
 };
 
+/**
+ * @desc gets currently logged in user - gets cookies from request, verifies jwt
+ * @param req
+ * @param res
+ * @returns currentSession : SessionModel
+ */
 export const getCurrentSessionHandler = async (req: Request, res: Response) => {
   //@ts-ignore
-  const user: Session | string = req.tttATkn;
-  return res.status(200).send(user);
+  const { tttATkn } = req.cookies;
+  const decodedSession = verifyJWT(tttATkn, "accessTokenPublicKey");
+  const { payload } = decodedSession;
+  const currentSession = await getMostRecentSession(payload?._id);
+  return res.status(200).json({ currentSession });
 };
+
 export const getAllSessionsHandler = async (req: Request, res: Response) => {
   const allSessions = await getAllSessions();
 
   if (!allSessions) {
-    return res.status(404).send("Cannot find sessions");
+    return res.status(404).json({ message: "Error finding sessions" });
   }
   if (allSessions.length === 0) {
-    return res.status(200).send("No sessions available");
+    return res.status(200).json({ message: "No sessions available" });
   }
-  return res.status(200).send(allSessions);
+  return res.status(200).json(allSessions);
 };
 
-export const getSessionsByUserEmail = async (
-  req: Request<{}, {}, GetByUserEmailSessionInput>,
+export const getSessionsByUserEmailHandler = async (
+  req: Request<GetByUserEmailSessionInput, {}, {}>,
   res: Response
 ) => {
-  const { email } = req.body;
+  const { email } = req.params;
   const user = await findUserByEmail(email);
 
   if (!user) {
-    return res.status(404).send("User not found");
+    return res.status(404).json({ message: "User not found" });
   }
 
-  const usersSessions = await getSessionsById(user.id);
+  const usersSessions = await getAllUserSessionsById({ userId: user._id });
 
   if (!usersSessions) {
-    return res.status(404).send("Cannot find sessions");
+    return res.status(404).json({ message: "Cannot find sessions" });
   }
   if (usersSessions.length === 0) {
-    return res.status(200).send("User does not have any sessions ");
+    return res.status(404).json({ message: "User does not have any sessions" });
   }
 
   return res.status(200).send(usersSessions);

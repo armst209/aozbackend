@@ -15,7 +15,7 @@ export const createSessionSchema = object({
 });
 
 export const getSessionsByUserEmailSchema = object({
-  body: object({
+  params: object({
     email: string({ required_error: "Email is required" }).email(
       language.validEmailMessage
     ),
@@ -30,5 +30,5 @@ export const getCurrentSessionSchema = object({
 
 export type GetByUserEmailSessionInput = TypeOf<
   typeof getSessionsByUserEmailSchema
->["body"];
+>["params"];
 export type CreateSessionInput = TypeOf<typeof createSessionSchema>["body"];

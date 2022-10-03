@@ -27,10 +27,10 @@ export const getAllUsersHandler = async (req: Request, res: Response) => {
   const allUsers = await getAllUsers();
 
   if (!allUsers) {
-    return res.status(404).send("Cannot find users");
+    return res.status(404).json({ message: "Error finding users" });
   }
   if (allUsers.length === 0) {
-    return res.status(200).send("No available users");
+    return res.status(200).json({ message: "No available users" });
   }
   return res.status(200).json(allUsers);
 };
@@ -64,14 +64,14 @@ export const createUserHandler = async (
     });
 
     //not checking for if the user exists because of the unique constraint on the model
-    return res.status(200).send("User successfully created");
+    return res.status(200).json({ message: "User successfully created" });
   } catch (error: any) {
     //code for a unique constraint has been violated
     if (error.code === 11000) {
-      return res.status(409).send("Account already exists"); //conflict
+      return res.status(409).json({ message: "Account already exists" }); //conflict
     }
     logger.error(error);
-    return res.status(500).send(error);
+    return res.status(500).json({ message: error.message });
   }
 };
 
@@ -85,17 +85,17 @@ export const updateUserRoleHandler = async (
 
   //user not found
   if (!user) {
-    return res.status(404).send("User not found");
+    return res.status(404).json({ message: "User not found." });
   }
 
   //user is already has role
   if (user.roles.includes(role)) {
-    return res.status(400).send(`User is already a ${role}`);
+    return res.status(400).json({ message: `User is already a ${role}.` });
   }
 
   //role is not found
   if (!userRoles.includes(role)) {
-    return res.status(404).send("Role not found");
+    return res.status(404).json({ message: "Role not found." });
   }
 
   //update user roles
@@ -121,12 +121,16 @@ export const updateUserRoleHandler = async (
         await user?.save();
         break;
       default:
-        return res.status(400).send("User's role could not be updated");
+        return res
+          .status(400)
+          .json({ message: "User's role could not be updated" });
     }
-    return res.status(200).send("User's role has been successfully updated");
+    return res
+      .status(200)
+      .json({ message: "User's role has been successfully updated" });
   } catch (error) {
     logger.error(error);
-    res.status(400).send("User's role could not be updated");
+    res.status(400).json({ message: "User's role could not be updated" });
   }
 };
 
@@ -147,12 +151,12 @@ export const verifyUserByEmailHandler = async (
   const user = await findUserById(id);
 
   if (!user) {
-    res.status(404).send("User not found. Could not verify user");
+    res.status(404).json({ message: "User not found. Could not verify user" });
   }
 
   //checking to see if user is already verified
   if (user?.isVerified) {
-    return res.send("User is already verified");
+    return res.json({ message: "User is already verified" });
   }
 
   ///checking if verification code matches
@@ -160,10 +164,10 @@ export const verifyUserByEmailHandler = async (
     user.isVerified = true;
     //saving in document
     await user.save();
-    return res.status(200).send("User successfully verified");
+    return res.status(200).json({ message: "User successfully verified" });
   }
 
-  return res.status(400).json("Could not verify user");
+  return res.status(400).json({ message: "Could not verify user" });
 };
 
 export const forgotPasswordHandler = async (
@@ -176,11 +180,11 @@ export const forgotPasswordHandler = async (
 
   if (!user) {
     logger.debug(`User with email ${email} does not exist`);
-    return res.send(language.forgotPasswordMessage);
+    return res.status(400).json({ message: language.forgotPasswordMessage });
   }
 
   if (!user.isVerified) {
-    return res.sendStatus(400).send("User is not verified");
+    return res.status(400).json({ message: "User is not verified" });
   }
 
   //generating new password reset code & saving document
@@ -196,7 +200,7 @@ export const forgotPasswordHandler = async (
   });
   logger.debug(`Password reset email sent to ${email}`);
 
-  return res.status(200).send(language.forgotPasswordMessage);
+  return res.status(200).json({ message: language.forgotPasswordMessage });
 };
 
 export const resetPasswordHandler = async (
@@ -213,16 +217,12 @@ export const resetPasswordHandler = async (
     !user.passwordResetCode ||
     user.passwordResetCode !== passwordResetCode
   ) {
-    return res.status(400).send("Could not reset user password");
+    return res.status(400).json({ message: "Could not reset user password" });
   }
 
   user.passwordResetCode = null;
   user.password = password;
   await user.save();
 
-  return res.send("Successfully update password");
-};
-
-export const getCurrentUserHandler = async (req: Request, res: Response) => {
-  return res.status(200).send(res.locals.user);
+  return res.status(200).json({ message: "Successfully updated password" });
 };

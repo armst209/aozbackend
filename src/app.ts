@@ -6,9 +6,9 @@ import config from "config";
 import logger from "./utils/logger";
 import router from "./routes/index";
 import connectToDatabase from "./utils/connectToDB";
-import authorizeUser from "./middleware/authorizeUser";
 import cookieParser from "cookie-parser";
-import deserializeUser from "./middleware/deserializeUser";
+import { errorHandler } from "./middleware/errorHandler";
+import authorizeUser from "./middleware/authorizeUser";
 
 const port = config.get<number>("port");
 
@@ -19,7 +19,7 @@ const app = express();
 app.use(cookieParser()); //for setting cookies
 app.use(express.json()); //replaces body parser - must be above router
 
-// app.use(deserializeUser); //for user routes that require jwt but don't require admin status
+app.use(authorizeUser); //http only cookie authorized routers
 
 app.use(
   cors({
@@ -27,7 +27,10 @@ app.use(
     origin: "http://localhost:3000",
   })
 );
+
 app.use(router);
+
+app.use(errorHandler); //custom error handler
 
 app.listen(port, async () => {
   logger.info(

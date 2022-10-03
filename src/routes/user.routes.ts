@@ -5,7 +5,6 @@ import {
   getAllUsersHandler,
   resetPasswordHandler,
   verifyUserByEmailHandler,
-  getCurrentUserHandler,
   updateUserRoleHandler,
 } from "../controllers/user.controller";
 import validateResource from "../middleware/validateResource";
@@ -18,17 +17,6 @@ import {
 } from "../schema/user.schema";
 
 const router = express.Router();
-
-//private routes
-router.get("/api/admin/users", getAllUsersHandler);
-
-router.get("/api/admin/users/currentUser", getCurrentUserHandler);
-
-router.put(
-  "/api/admin/users/",
-  validateResource(updateUserRoleSchema),
-  updateUserRoleHandler
-);
 
 //public routes
 router.post(
@@ -53,6 +41,14 @@ router.post(
   "/api/users/resetpassword/:id/:passwordResetCode",
   validateResource(resetPasswordSchema),
   resetPasswordHandler
+);
+
+//private routes
+router.get("/api/admin/users", getAllUsersHandler);
+router.put(
+  "/api/admin/users/",
+  validateResource(updateUserRoleSchema),
+  updateUserRoleHandler
 );
 
 export default router;
