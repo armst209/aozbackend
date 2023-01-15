@@ -14,7 +14,7 @@ import {
 import config from "config";
 import { findUserByEmail } from "../services/user.service";
 import { verifyJWT } from "../utils/jwt";
-import language from "../utils/language";
+import language from "../common/language";
 
 import { updateSessionById } from "../services/sessions.service";
 import getCurrentDateTimeInEST from "../utils/getCurrentDateEST";

@@ -46,7 +46,7 @@ router.post(
 //private routes
 router.get("/api/admin/users", getAllUsersHandler);
 router.put(
-  "/api/admin/users/",
+  "/api/admin/users",
   validateResource(updateUserRoleSchema),
   updateUserRoleHandler
 );

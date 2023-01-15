@@ -1,5 +1,5 @@
 import { object, string, TypeOf } from "zod";
-import language from "../utils/language";
+import language from "../common/language";
 import userValidation from "../validation/user.validation";
 
 export const createSessionSchema = object({

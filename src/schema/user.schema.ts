@@ -3,12 +3,12 @@ import { boolean, object, string, TypeOf } from "zod";
 import userValidationRules from "../validation/user.validation";
 import logger from "../utils/logger";
 
-import language from "../utils/language";
+import language from "../common/language";
 
 const { name, email, username, password, rank, roles, team, isAdmin } =
   userValidationRules;
 const { passwordMinLength, passwordMaxLength } = language;
-//user schema
+
 export const createUserSchema = object({
   body: object({
     name: string({ invalid_type_error: "Name must be a string" })

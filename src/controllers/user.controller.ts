@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { nanoid } from "nanoid";
 import { User } from "../models/user.model";
 import sendEmail from "./mailer.controller";
-import language from "../utils/language";
+import language from "../common/language";
 
 import {
   CreateUserInput,

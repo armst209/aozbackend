@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import config from "config";
 import { User } from "../models/user.model";
 import { Session } from "../models/session.model";
-import { JWTVerifyReturn } from "./interfaces";
+import { JWTVerifyReturn } from "../common/interfaces";
 
 export const signJWT = (
   object: Object,
