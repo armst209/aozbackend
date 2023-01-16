@@ -1,4 +1,5 @@
 import express from "express";
+import { createSessionHandler } from "../controllers/sessions.controller";
 import {
   createUserHandler,
   forgotPasswordHandler,
@@ -8,6 +9,7 @@ import {
   updateUserRoleHandler,
 } from "../controllers/user.controller";
 import validateResource from "../middleware/validateResource";
+import { createUserSessionSchema } from "../schema/sessions.schema";
 import {
   createUserSchema,
   forgotPasswordSchema,
@@ -20,13 +22,19 @@ const router = express.Router();
 
 //public routes
 router.post(
-  "/api/users",
+  "/api/users/register",
   validateResource(createUserSchema), //validating info from client against schema - Zod validation
   createUserHandler
 );
 
 router.post(
-  "/api/users/verify/:id/:verificationCode",
+  "/api/users/login",
+  validateResource(createUserSessionSchema),
+  createSessionHandler
+);
+
+router.post(
+  "/api/users/verify",
   validateResource(verifyUserSchema),
   verifyUserByEmailHandler
 );
@@ -38,7 +46,7 @@ router.post(
 );
 
 router.post(
-  "/api/users/resetpassword/:id/:passwordResetCode",
+  "/api/users/resetpassword",
   validateResource(resetPasswordSchema),
   resetPasswordHandler
 );

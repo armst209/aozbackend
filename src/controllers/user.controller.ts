@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { nanoid } from "nanoid";
-import { User } from "../models/user.model";
+
 import sendEmail from "./mailer.controller";
 import language from "../common/language";
 
@@ -144,8 +144,8 @@ export const verifyUserByEmailHandler = async (
   req: Request<VerifyUserInput>,
   res: Response
 ) => {
-  const id = req.params.id;
-  const verificationCode = req.params.verificationCode;
+  const id = (req.query.id || "") as string;
+  const verificationCode = (req.query.verificationCode || "") as string;
 
   //finding user by id
   const user = await findUserById(id);

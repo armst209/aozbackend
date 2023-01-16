@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import { verifyJWT } from "../utils/jwt";
 import { JWTVerifyReturn } from "../common/interfaces";
-import { publicRoutes } from "../routes/routeTypes";
+import { checkPublicRoutes } from "../routes/routeTypes";
 
 const authorizeUser = async (
   req: Request,
@@ -10,8 +10,7 @@ const authorizeUser = async (
 ) => {
   const { tttATkn: accessToken } = req.cookies;
 
-  if (publicRoutes.includes(req.path)) {
-    console.log(req.path);
+  if (checkPublicRoutes(req)) {
     return next();
   }
 

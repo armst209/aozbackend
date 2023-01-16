@@ -1,4 +1,4 @@
-import express, { Response } from "express";
+import express, { Response, Request } from "express";
 import {
   getAllMailChimpLists,
   getMyMailChimpList,
@@ -6,8 +6,6 @@ import {
 } from "../controllers/mailer.controller";
 
 const router = express.Router();
-
-//private routes
 
 //ping health test
 router.get("/mail/admin/healthcheck", (_, res: Response) =>

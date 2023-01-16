@@ -122,7 +122,7 @@ export const authorizeUserSchema = object({
   }),
 });
 export const verifyUserSchema = object({
-  params: object({
+  query: object({
     id: string({
       required_error: "An ID is required",
       invalid_type_error: "id must be a string",
@@ -187,7 +187,7 @@ export const resetPasswordSchema = object({
 export type CreateUserInput = TypeOf<typeof createUserSchema>["body"];
 export type AuthorizeUserSchema = TypeOf<typeof authorizeUserSchema>["body"];
 export type UpdateUserRoleSchema = TypeOf<typeof updateUserRoleSchema>["body"];
-export type VerifyUserInput = TypeOf<typeof verifyUserSchema>["params"];
+export type VerifyUserInput = TypeOf<typeof verifyUserSchema>["query"];
 export type ForgotPasswordInput = TypeOf<typeof forgotPasswordSchema>["body"];
 export type ResetPasswordParams = TypeOf<typeof resetPasswordSchema>["params"];
 export type ResetPasswordInput = TypeOf<typeof resetPasswordSchema>["body"];

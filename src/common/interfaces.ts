@@ -10,3 +10,9 @@ export interface JWTVerifyReturn {
   payload: any | null;
   expired: boolean;
 }
+
+export enum UserRoles {
+  User,
+  Admin,
+  Editor,
+}

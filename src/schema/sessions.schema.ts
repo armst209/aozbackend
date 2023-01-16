@@ -2,7 +2,7 @@ import { object, string, TypeOf } from "zod";
 import language from "../common/language";
 import userValidation from "../validation/user.validation";
 
-export const createSessionSchema = object({
+export const createUserSessionSchema = object({
   body: object({
     email: string({ required_error: "Email is required" }).email(
       language.vagueLoginMessage
@@ -31,4 +31,6 @@ export const getCurrentSessionSchema = object({
 export type GetByUserEmailSessionInput = TypeOf<
   typeof getSessionsByUserEmailSchema
 >["params"];
-export type CreateSessionInput = TypeOf<typeof createSessionSchema>["body"];
+export type CreateUserSessionInput = TypeOf<
+  typeof createUserSessionSchema
+>["body"];

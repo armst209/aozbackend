@@ -8,21 +8,19 @@ import {
 } from "../controllers/sessions.controller";
 
 import validateResource from "../middleware/validateResource";
-import { createSessionSchema } from "../schema/sessions.schema";
+import { createUserSessionSchema } from "../schema/sessions.schema";
 
 const router = express.Router();
 
-//public routes
-
 //login
 router.post(
-  "/api/session",
-  validateResource(createSessionSchema),
+  "/api/session/login",
+  validateResource(createUserSessionSchema),
   createSessionHandler
 );
 
 //logout
-router.delete("/api/session", endSessionHandler);
+router.delete("/api/session/logout", endSessionHandler);
 
 //admin routes
 router.get("/api/admin/session", getCurrentSessionHandler);

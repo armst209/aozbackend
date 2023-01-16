@@ -19,7 +19,7 @@ const app = express();
 app.use(cookieParser()); //for setting cookies
 app.use(express.json()); //replaces body parser - must be above router
 
-//app.use(authorizeUser); //http only cookie authorized routers
+app.use(authorizeUser); //http only cookie authorized routers
 
 app.use(
   cors({

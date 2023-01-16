@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import {
-  CreateSessionInput,
+  CreateUserSessionInput,
   GetByUserEmailSessionInput,
 } from "../schema/sessions.schema";
 import {
@@ -28,7 +28,7 @@ import logger from "../utils/logger";
  * @returns
  */
 export const createSessionHandler = async (
-  req: Request<{}, {}, CreateSessionInput>,
+  req: Request<{}, {}, CreateUserSessionInput>,
   res: Response
 ) => {
   //generic message for client
@@ -46,7 +46,7 @@ export const createSessionHandler = async (
     //verifying user - if user has not followed link in email
     if (!user.isVerified) {
       logger.error("User has not been verified");
-      return res.status(400).json({ message: "User not verified" });
+      return res.status(400).json({ message: "User is not verified" });
     }
 
     const isValid = await user.validatePassword(password);
